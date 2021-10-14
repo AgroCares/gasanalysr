@@ -1,15 +1,16 @@
 Package: gasanalysr
-Title: What the Package Does (One Line, Title Case)
+Title: Functions to process and analyse data from Gasera one
 Version: 0.0.0.9000
-Authors@R: 
-    person(given = "First",
-           family = "Last",
+Authors@R: c(
+    person(given = "Brent",
+           family = "Riechelman",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+           email = "brent.riechelman@nmi-agro.nl",
+           comment = c(ORCID = "https://orcid.org/0000-0003-1501-1573")),
+    person("Nutriënten Managment Instituut", email = "nmi@nmi-agro.nl", role = "cph"))
+Description: This package provides functions to read data produced by the Gasera One photoacoustic gas analyser which cary a .meas extension.
+  Additionally, functions are provided to calculate rate of concentration change of measured gasses.
+License: GPL-3 | file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
