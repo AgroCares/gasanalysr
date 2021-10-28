@@ -54,4 +54,46 @@ ppr_samplekey <- function(dt) {
   # return output
   return(ddt)
 }
+#' Prepare measurement data
+#'
+#' Formats measurement data. Specifically: Timestamp is turned into POSIXct and
+#' redundant columns are removed.
+#'
+#' @param measurement.dt (data.table) A data.table with measurement data from
+#' the gaserone analyser.
+#'
+#' @import data.table
+#' @import lubridate
+#'
+#' @export
+ppr_measurement <- function(measurement.dt) {
+  # data table of measurements with column names, can be obtained with:
+  # measurement.dt <- read.delim('path/name.meas'), skip = 6) |> setDT()
 
+  # copy data table
+  dt <- copy(measurement.dt)
+
+  # check data table
+  checkmate::assert_data_table(dt)
+
+  # grep columns with measurements and timestamps
+  cols <- (names(dt)[grep('Time|ppm|O2|2O|H3',names(dt))])
+  dt <- dt[,..cols]
+
+  # check if data is complete
+  checkmate::assert_data_table(dt, min.cols = 2, any.missing = FALSE)
+
+  # check if all measurements are in ppm, if in ppb or percentage you need to manually change input
+  checkmate::assert_true(all(grepl('Time|ppm',cols)))
+
+  # format timestamp as posxct
+  dt <- dt[,Timestamp := lubridate::ymd_hms(Timestamp)]
+
+  # format column names
+  setnames(dt, names(dt), gsub('\\.\\.', '\\.', names(dt)))
+  setnames(dt, names(dt), gsub('\\.$', '', names(dt)))
+  setnames(dt, names(dt)[grepl('ppm', names(dt))], tolower(names(dt)[grepl('ppm', names(dt))]))
+
+  # return output
+  return(dt)
+}

@@ -13,7 +13,8 @@ Description: This package provides functions to read data produced by the Gasera
 Depends: R (>= 4.1.0)
 Imports: 
   checkmate,
-  data.table
+  data.table,
+  lubridate
 License: GPL (>= 3)
 BugReports: https://github.com/AgroCares/gasanalysr/issues
 Encoding: UTF-8
