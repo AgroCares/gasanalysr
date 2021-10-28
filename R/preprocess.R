@@ -11,19 +11,20 @@
 #'
 #' @export
 ppr_samplekey <- function(dt) {
-  dt <- copy(dt)
+
+  # add visual binding
+  monsterid = eind_tijddag = starteind = timedate = NULL
 
   # check input
   checkmate::assert_data_table(dt)
   checkmate::assert_subset(names(dt), choices = c("monsterid", "sluittijd", "starttijd", "eindtijd", "sluit_tijddag", "start_tijddag",
                                                   "eind_tijddag", "sluit_dag", "start_dag", "eind_dag", "warn"))
-
   # remove warning column
-  cols <- c(names(dt)[grep('id|jd|dag',names(dt))])
-  dt <- dt[, ..cols]
+  keepcols <- c(names(dt)[grep('id|jd|dag',names(dt))])
+  dt <- dt[,..keepcols]
 
   # remove rows without monsterid
-  dt <- dt[!is.na(monsterid)]
+  dt <- dt[!is.na(monsterid),]
 
   # get measurevars for melting of time-day columns
   measvars <- names(dt)[grep('tijddag$',names(dt))]
@@ -51,3 +52,4 @@ ppr_samplekey <- function(dt) {
   # return output
   return(ddt)
 }
+
