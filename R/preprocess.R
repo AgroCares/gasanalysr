@@ -13,41 +13,43 @@
 ppr_samplekey <- function(dt) {
 
   # add visual binding
-  monsterid = eind_tijddag = starteind = timedate = . = NULL
+  sample_id = end_timeday = startend = timedate = . = NULL
 
   # check input
   checkmate::assert_data_table(dt)
-  checkmate::assert_subset(names(dt), choices = c("monsterid", "sluittijd", "starttijd", "eindtijd", "sluit_tijddag", "start_tijddag",
-                                                  "eind_tijddag", "sluit_dag", "start_dag", "eind_dag", "warn"))
+  checkmate::assert_subset(names(dt),
+                           choices = c("sample_id", "sealtime", "starttime",
+                                       "endtime", "seal_timeday", "start_timeday",
+                                        "end_timeday", "seal_day", "start_day", "end_day", "warn"))
   # remove warning column
-  keepcols <- c(names(dt)[grep('id|jd|dag',names(dt))])
-  dt <- dt[,c(keepcols)]
+  keepcols <- c(names(dt)[grep('id|time|day',names(dt))])
+  dt <- dt[,..keepcols]
 
-  # remove rows without monsterid
-  dt <- dt[!is.na(monsterid),]
+  # remove rows without sample_id
+  dt <- dt[!is.na(sample_id),]
 
   # get measurevars for melting of time-day columns
-  measvars <- names(dt)[grep('tijddag$',names(dt))]
+  measvars <- names(dt)[grep('timeday$',names(dt))]
 
   # coerce to double if of type logical
-  if(all(is.na(dt[,eind_tijddag]))) {
-    dt <- dt[,eind_tijddag := as.double(eind_tijddag)]
+  if(all(is.na(dt[,end_timeday]))) {
+    dt <- dt[,end_timeday := as.double(end_timeday)]
     }
 
-  # melt tijddag
+  # melt timeday
   ddt <- melt(dt,
               measure.vars = measvars,
-              variable.name = 'starteind',
+              variable.name = 'startend',
               value.name = 'timedate')
 
   # take only relevant columns
-  ddt <- unique(ddt[,.(monsterid, starteind, timedate)])
+  ddt <- unique(ddt[,.(sample_id, startend, timedate)])
 
-  # format starteind
-  ddt <- ddt[,starteind := gsub('_.*$','', ddt$starteind)]
+  # format startend
+  ddt <- ddt[,startend := gsub('_.*$','', ddt$startend)]
 
   # remove rows with eind an no time
-  ddt <- ddt[!is.na(timedate)|!starteind == 'eind']
+  ddt <- ddt[!is.na(timedate)|!startend == 'eind']
 
   # return output
   return(ddt)
