@@ -21,7 +21,7 @@ ppr_samplekey <- function(dt) {
                                                   "eind_tijddag", "sluit_dag", "start_dag", "eind_dag", "warn"))
   # remove warning column
   keepcols <- c(names(dt)[grep('id|jd|dag',names(dt))])
-  dt <- dt[,..keepcols]
+  dt <- dt[,c(keepcols)]
 
   # remove rows without monsterid
   dt <- dt[!is.na(monsterid),]

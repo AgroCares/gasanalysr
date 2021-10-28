@@ -14,7 +14,7 @@ Depends: R (>= 4.1.1)
 Imports: 
   checkmate,
   data.table
-License: GPL-3 | file LICENSE
+License: GPL (>= 3)
 BugReports: https://github.com/AgroCares/gasanalysr/issues
 Encoding: UTF-8
 LazyData: true
