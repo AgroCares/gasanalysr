@@ -10,7 +10,7 @@ Authors@R: c(
     person("Nutriënten Managment Instituut", email = "nmi@nmi-agro.nl", role = "cph"))
 Description: This package provides functions to read data produced by the Gasera One photoacoustic gas analyser which cary a .meas extension.
   Additionally, functions are provided to calculate rate of concentration change of measured gasses.
-Depends: R (>= 4.1.1)
+Depends: R (>= 4.1.0)
 Imports: 
   checkmate,
   data.table

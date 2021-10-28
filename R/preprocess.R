@@ -13,7 +13,7 @@
 ppr_samplekey <- function(dt) {
 
   # add visual binding
-  monsterid = eind_tijddag = starteind = timedate = NULL
+  monsterid = eind_tijddag = starteind = timedate = . = NULL
 
   # check input
   checkmate::assert_data_table(dt)
