@@ -82,8 +82,12 @@ ppr_measurement <- function(measurement.dt) {
   cols <- (names(dt)[grep('Time|ppm|O2|2O|H3',names(dt))])
   dt <- dt[,..cols]
 
-  # check if data is complete
-  checkmate::assert_data_table(dt, min.cols = 2, any.missing = FALSE)
+  # check if data is complete (at least a timestamp and a measurement)
+  # check that there is at most 1 Time column
+  checkmate::assert_number(sum(grepl('Time', names(dt))), lower = 1, upper = 1)
+  # check that there is at least one ppm measurement column
+  checkmate::assert_number(sum(grepl('ppm', names(dt)[!grepl('Time', names(dt))])),
+                           lower = 1)
 
   # check if all measurements are in ppm, if in ppb or percentage you need to manually change input
   checkmate::assert_true(all(grepl('Time|ppm',cols)))
