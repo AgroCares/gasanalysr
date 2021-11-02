@@ -2,7 +2,7 @@
 % Please edit documentation in R/preprocess.R
 \name{ppr_measurement}
 \alias{ppr_measurement}
-\title{Prepare sample key}
+\title{Prepare measurement data}
 \usage{
 ppr_measurement(measurement.dt)
 }
@@ -11,6 +11,6 @@ ppr_measurement(measurement.dt)
 the gaserone analyser.}
 }
 \description{
-Formats sample key data from a human usable excel file format to a long form
-R usable format to identify seal start and end times of measurements.
+Formats measurement data. Specifically: Timestamp is turned into POSIXct and
+redundant columns are removed.
 }

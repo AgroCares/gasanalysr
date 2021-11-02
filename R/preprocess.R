@@ -13,7 +13,7 @@
 ppr_samplekey <- function(dt) {
 
   # add visual binding
-  sample_id = end_timeday = startend = timedate = . = NULL
+  sample_id = end_timeday = startend = timedate = . = ..keepcols = NULL
 
   # check input
   checkmate::assert_data_table(dt)
@@ -63,12 +63,14 @@ ppr_samplekey <- function(dt) {
 #' the gaserone analyser.
 #'
 #' @import data.table
-#' @import lubridate
 #'
 #' @export
 ppr_measurement <- function(measurement.dt) {
   # data table of measurements with column names, can be obtained with:
   # measurement.dt <- read.delim('path/name.meas'), skip = 6) |> setDT()
+
+  # add global binding
+  ..cols = Timestamp = NULL
 
   # copy data table
   dt <- copy(measurement.dt)
