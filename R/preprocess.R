@@ -13,7 +13,7 @@
 ppr_samplekey <- function(dt) {
 
   # add visual binding
-  sample_id = end_timeday = startend = timedate = . = ..keepcols = NULL
+  sample_id = end_timeday = startend = timedate = . = keepcols = NULL
 
   # check input
   checkmate::assert_data_table(dt)
@@ -48,8 +48,8 @@ ppr_samplekey <- function(dt) {
   # format startend
   ddt <- ddt[,startend := gsub('_.*$','', ddt$startend)]
 
-  # remove rows with eind an no time
-  ddt <- ddt[!is.na(timedate)|!startend == 'eind']
+  # remove rows with end an no time
+  ddt <- ddt[!is.na(timedate)|!startend == 'end']
 
   # return output
   return(ddt)
