@@ -91,25 +91,30 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
     # check if max.backg.h2o isn't very high
     if(max.backg.h2o > max.amb.h2o) {
       warning(paste0('maximum background h2o concentration seems to be over ',
-                     max.amb.h2o, 'ppm, checking correct Timestep cannot be continued'))
+                     max.amb.h2o,
+                     'ppm, checking correct Timestep cannot be continued'))
     } else{
       # number of start measurements with h2o concentrations within 10% of max background h2o
-      n.likelywrongstart <- nrow(dtm[startend == 'start' &!is.na(sample_id)& h2o.ppm < 1.1*max.backg.h2o])
+      n.likelywrongstart <- nrow(dtm[startend == 'start' &
+                                       !is.na(sample_id)& h2o.ppm < 1.1*max.backg.h2o])
       if(n.likelywrongstart>0) {
         message('At least one measurement seems to have low h2o concentrations at start, attempting to shift rows')
         # reducing timestamp by 2 minutes is not smart, because there isn't always two minutes between timestamps, would be better to improve imput data or merge with adjusted index (taking other row)
 
         # making new startend column
-        dtm[startend == 'seal',c('n.startend', 'n.sample_id') := list('seal',sample_id)]
+        dtm[startend == 'seal',c('n.startend', 'n.sample_id') :=
+              list('seal',sample_id)]
 
         # get rows indices with start and end
         startrows <- which(dtm[,startend] == 'start')
         endrows  <- which(dtm[,startend] == 'end')
 
         # new start
-        dtm[startrows-1, c('n.startend', 'n.sample_id','n.time') := list('start', dtm[startrows,sample_id], dtm[startrows, time])]
+        dtm[startrows-1, c('n.startend', 'n.sample_id','n.time') :=
+              list('start', dtm[startrows,sample_id], dtm[startrows, time])]
         # new end
-        dtm[endrows-1,  c('n.startend', 'n.sample_id','n.time') := list('end', dtm[endrows,sample_id], dtm[endrows, time])]
+        dtm[endrows-1,  c('n.startend', 'n.sample_id','n.time') :=
+              list('end', dtm[endrows,sample_id], dtm[endrows, time])]
 
         # checking new start concentrations
         n.likelywrongstart <- nrow(dtm[n.startend == 'start'&!is.na(n.sample_id)& h2o.ppm <1.1*max.backg.h2o])
@@ -131,9 +136,38 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
         # overwrite sample_id and startend with adjusted columns
         dtm[,c('sample_id', 'startend','time') := list(n.sample_id, n.startend, n.time)]
 
-        # remove n columns
-        dtm <- dtm[,1:8]
+
       }
     }
   }
+   # remove n columns
+   ncols <- names(dtm)[grepl('^n\\.', names(dtm))]
+   kcols <- names(dtm)[!names(dtm) %in% ncols]
+
+   dtm <- dtm[,..kcols]
+
+   return(dtm)
+}
+#' Fill intermediate sample_id's
+#'
+#' Fill sample_id for timestamps between start and end measurement.
+#'
+#' @param dt (data.table) A data.table where measurement have been merged with a
+#' sample_id data
+fill_inter <- function(dt) {
+  # add global variable binding
+  sample_id = Timestamp = startend = NULL
+
+  # check Timestamp
+  checkmate::assert_posixct(dt$Timestamp)
+
+  # fill sample_ids and intermeddiate measurements
+  for(id in unique(dt$sample_id)) {
+    dt <- dt[is.na(sample_id) &
+               Timestamp > dt[sample_id == id & startend == 'start',Timestamp] &
+               Timestamp < dt[sample_id == id & startend == 'end', Timestamp],
+             c('sample_id', 'startend') := list(id, 'inter')]
+  }
+
+  return(dt)
 }
