@@ -6,13 +6,23 @@
 #' @param dt (data.table)
 #' @param startconc (character) character vector of sample_id's that act as pre-
 #' incubation start concentration for all samples
+#'
+#' @return out (data.table) A data.table with the following
+#' columns: sample_id,\cr gas, \cr sealtime, \cr
+#' mmtime (mean measurement time, the mean time of measurements of a sample),\cr
+#' incubation_time (time between sealing and mmtime),\cr
+#'  startconc (concentration or reference sample during measurement),\cr
+#'  mmconc (mean concentration during measurement),\cr
+#'  d_conc (difference in concentration between sample measurement and reference),\cr
+#'  d_rate (rate of concentration change in concentration/day)\cr
+#'
 calc_delta <- function(dt, startconc = NA) {
   # dt should be a data.table processed by fill_inter fill_inter may not be required if one only has single measurements
   # startconc should be a character or character vector indicating the sample_id of the background sample
 
   # Add global binding
-  sample_id = startend = . = Timestamp = mmtime = gas = d_time = sealtime = NULL
-  mmv = value = d_conc = d_rate = NULL
+  sample_id = startend = . = Timestamp = mmtime = gas = sealtime = NULL
+  mmconc = value = d_conc = d_rate = incubation_time = NULL
 
   # make sample_id string
   dt <- dt[, sample_id := as.character(sample_id)]
@@ -61,24 +71,24 @@ calc_delta <- function(dt, startconc = NA) {
   # calculate mean measurement time
   dt.m <- dt.m[,mmtime := mean(Timestamp), by = .(sample_id, gas)]
 
-  # calculate time interval between closing and mean measurement time
-  dt.m <- dt.m[, d_time := difftime(mmtime, sealtime, units = 'mins')]
+  # calculate time interval between sealing and mean measurement time
+  dt.m <- dt.m[, incubation_time := difftime(mmtime, sealtime, units = 'days')]
 
   # calculate change in concentrations
   # merge with startconc.m
   dt.m <- merge(dt.m, startconc.m, by.x = 'gas', by.y = 'variable')
 
   # calculate mean measured value
-  dt.m <- dt.m[, mmv := mean(value), by = .(sample_id, gas)]
+  dt.m <- dt.m[, mmconc := mean(value), by = .(sample_id, gas)]
 
   # calculate change in concentration
-  dt.m <- dt.m[,d_conc := mmv - startconc]
+  dt.m <- dt.m[,d_conc := mmconc - startconc]
 
   # calculate rate
-  dt.m <- dt.m[,d_rate := d_conc/as.numeric(d_time)]
+  dt.m <- dt.m[,d_rate := d_conc/as.numeric(incubation_time)]
 
   # select relevant output columns
-  out <- unique(dt.m[,.(sample_id, gas, sealtime, mmtime, d_time, startconc, mmv, d_conc,d_rate)])
+  out <- unique(dt.m[,.(sample_id, gas, sealtime, mmtime, incubation_time, startconc, mmconc, d_conc,d_rate)])
 
   setorder(out, sample_id, gas)
 

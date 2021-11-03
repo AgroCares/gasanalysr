@@ -12,6 +12,16 @@ calc_delta(dt, startconc = NA)
 \item{startconc}{(character) character vector of sample_id's that act as pre-
 incubation start concentration for all samples}
 }
+\value{
+out (data.table) A data.table with the following
+columns: sample_id,\cr gas, \cr sealtime, \cr
+mmtime (mean measurement time, the mean time of measurements of a sample),\cr
+incubation_time (time between sealing and mmtime),\cr
+startconc (concentration or reference sample during measurement),\cr
+mmconc (mean concentration during measurement),\cr
+d_conc (difference in concentration between sample measurement and reference),\cr
+d_rate (rate of concentration change in concentration/day)\cr
+}
 \description{
 Calculates concentration changes between sealing and after incubation when a
 reference sample is given as start concentration.
