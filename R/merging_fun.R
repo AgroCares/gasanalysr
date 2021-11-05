@@ -10,6 +10,7 @@
 #' on the merged timestamps using \code{\link{tsscheck}}
 #'
 #' @import data.table
+#' @export
 merge_times <- function(sdt, mdt, timestamp_check = TRUE){
   # sdt should be a data.table with columns sample_id, startend, and time (year, month, day, hour, minute)
   # mdt should be a data.table with at least columns Timestamp and a measurement column
@@ -74,6 +75,7 @@ merge_times <- function(sdt, mdt, timestamp_check = TRUE){
 #' @param max.amb.h2o (numeric) Maximum background H2O concentration in ppm
 #' is 20000 by default
 #'
+#' @export
 tsscheck <- function(dtm, max.amb.h2o = 20000) {
   # add global binding
   fmr = max.backg.h2o = endrows = n.likelywrongstart = startrows = n.time = NULL
@@ -154,6 +156,7 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
 #'
 #' @param dt (data.table) A data.table where measurement have been merged with a
 #' sample_id data
+#' @export
 fill_inter <- function(dt) {
   # add global variable binding
   sample_id = Timestamp = startend = NULL
