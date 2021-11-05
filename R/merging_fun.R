@@ -14,6 +14,8 @@
 merge_times <- function(sdt, mdt, timestamp_check = TRUE){
   # sdt should be a data.table with columns sample_id, startend, and time (year, month, day, hour, minute)
   # mdt should be a data.table with at least columns Timestamp and a measurement column
+  sdt <- copy(sdt)
+  mdt <- copy(mdt)
 
   # add global binding
   time = timedate = Timestamp = NULL
@@ -77,6 +79,8 @@ merge_times <- function(sdt, mdt, timestamp_check = TRUE){
 #'
 #' @export
 tsscheck <- function(dtm, max.amb.h2o = 20000) {
+  dtm <- copy(dtm)
+
   # add global binding
   fmr = max.backg.h2o = endrows = n.likelywrongstart = startrows = n.time = NULL
    h2o.ppm = startend = sample_id = time = n.startend = n.sample_id = NULL
@@ -158,6 +162,8 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
 #' sample_id data
 #' @export
 fill_inter <- function(dt) {
+  dt <- copy(dt)
+
   # add global variable binding
   sample_id = Timestamp = startend = NULL
 
