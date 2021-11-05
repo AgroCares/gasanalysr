@@ -51,6 +51,9 @@ ppr_samplekey <- function(dt) {
   # remove rows with end an no time
   ddt <- ddt[!is.na(timedate)|!startend == 'end']
 
+  # remove end rows with timestamp duplicated in start rows
+  ddt <- ddt[!(startend == 'end'& timedate %in% ddt[startend == 'start',timedate])]
+
   # return output
   return(ddt)
 }
