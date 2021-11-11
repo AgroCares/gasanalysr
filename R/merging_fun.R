@@ -18,7 +18,7 @@ merge_times <- function(sdt, mdt, timestamp_check = TRUE){
   mdt <- copy(mdt)
 
   # add global binding
-  time = timedate = Timestamp = NULL
+  stimedate = timedate = Timestamp = NULL
 
   # checks on sdt
   checkmate::assert_data_table(sdt,min.cols = 3)
@@ -27,8 +27,8 @@ merge_times <- function(sdt, mdt, timestamp_check = TRUE){
   checkmate::assert_subset(sdt$startend, choices = c('seal', 'start', 'end'))
   checkmate::assert_posixct(sdt$timedate)
 
-  # format sdt time as ymdhm
-  sdt <- sdt[,time := format(as.POSIXct(timedate), format = "%Y-%m-%d %H:%M")]
+  # format sdt stimedate as ymdhm
+  sdt <- sdt[,stimedate := format(as.POSIXct(timedate), format = "%Y-%m-%d %H:%M")]
 
   # checks on mdt
   checkmate::assert_data_table(mdt, min.cols = 2)
@@ -83,7 +83,7 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
 
   # add global binding
   fmr = max.backg.h2o = endrows = n.likelywrongstart = startrows = n.time = NULL
-   h2o.ppm = startend = sample_id = time = n.startend = n.sample_id = NULL
+   h2o.ppm = startend = sample_id = stimedate = n.startend = n.sample_id = NULL
 
   # checking of merging timestamps was successful or that timestamps have been shifted by 2 minutes
   if(!'h2o.ppm' %in% names(dtm)) {
@@ -117,10 +117,10 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
 
         # new start
         dtm[startrows-1, c('n.startend', 'n.sample_id','n.time') :=
-              list('start', dtm[startrows,sample_id], dtm[startrows, time])]
+              list('start', dtm[startrows,sample_id], dtm[startrows, stimedate])]
         # new end
         dtm[endrows-1,  c('n.startend', 'n.sample_id','n.time') :=
-              list('end', dtm[endrows,sample_id], dtm[endrows, time])]
+              list('end', dtm[endrows,sample_id], dtm[endrows, stimedate])]
 
         # checking new start concentrations
         n.likelywrongstart <- nrow(dtm[n.startend == 'start'&!is.na(n.sample_id)& h2o.ppm <1.1*max.backg.h2o])
@@ -140,7 +140,7 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
         if(all(exists('c1')&exists('c2'))) {message('shifting of timestamps seems to have been succesfull, no start or end rows have low h2o concentrations anymore')}
 
         # overwrite sample_id and startend with adjusted columns
-        dtm[,c('sample_id', 'startend','time') := list(n.sample_id, n.startend, n.time)]
+        dtm[,c('sample_id', 'startend','stimedate') := list(n.sample_id, n.startend, n.time)]
 
 
       }
