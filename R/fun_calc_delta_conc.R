@@ -16,6 +16,7 @@
 #'  d_conc (difference in concentration between sample measurement and reference),\cr
 #'  d_rate (rate of concentration change in concentration/day)\cr
 #'
+#' @export
 calc_delta <- function(dt, startconc = NA) {
   # dt should be a data.table processed by fill_inter fill_inter may not be required if one only has single measurements
   # startconc should be a character or character vector indicating the sample_id of the background sample
