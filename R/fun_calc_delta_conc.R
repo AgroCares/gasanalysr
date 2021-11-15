@@ -32,7 +32,7 @@ calc_delta <- function(dt, startconc = NA) {
   dt <- dt[!is.na(startend)]
 
   # get measurement columns
-  val.cols <- names(dt)[!grepl('ime|date|startend|sample|inlet', names(dt))]
+  val.cols <- names(dt)[grepl('co2|h2o|n2o|nh3', names(dt))]
 
   # check if there are NA's in startconc when its a vector (shouldn't be)
   checkmate::assert_vector(startconc, any.missing = FALSE, min.len = 1,
