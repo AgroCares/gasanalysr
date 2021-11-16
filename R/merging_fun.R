@@ -141,9 +141,6 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
 
         # overwrite sample_id and startend with adjusted columns
         dtm[,c('sample_id', 'startend','stimedate') := list(n.sample_id, n.startend, n.time)]
-
-        # return
-        return(dtm)
       }
     }
   }
