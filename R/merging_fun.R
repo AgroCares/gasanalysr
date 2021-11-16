@@ -48,7 +48,7 @@ merge_times <- function(sdt, mdt, timestamp_check = TRUE){
 
   # optionally check if timestamps have been shifted and need to be reshifted
   if(timestamp_check) {
-    tsscheck(dtm = dtm)
+    dtm <- tsscheck(dtm = dtm)
   }
 
   # return merged dt
@@ -142,7 +142,8 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
         # overwrite sample_id and startend with adjusted columns
         dtm[,c('sample_id', 'startend','stimedate') := list(n.sample_id, n.startend, n.time)]
 
-
+        # return
+        return(dtm)
       }
     }
   }
