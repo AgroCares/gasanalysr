@@ -64,11 +64,13 @@ ppr_samplekey <- function(dt) {
 #'
 #' @param measurement.dt (data.table) A data.table with measurement data from
 #' the gaserone analyser.
+#' @param concunit (character) String denoting the unit of the measured
+#' concentration, allowed units are ppm and mg/m3.
 #'
 #' @import data.table
 #'
 #' @export
-ppr_measurement <- function(measurement.dt) {
+ppr_measurement <- function(measurement.dt, concunit = NA_character_) {
   # data table of measurements with column names, can be obtained with:
   # measurement.dt <- read.delim('path/name.meas'), skip = 6) |> setDT()
 
@@ -81,19 +83,31 @@ ppr_measurement <- function(measurement.dt) {
   # check data table
   checkmate::assert_data_table(dt)
 
+  # identify unit in which concentrations are expressed
+  if(is.na(concunit)) {
+    # check that at least one column with a concentration is present
+    checkmate::assert_number(sum(grepl('ppm|mg[\\./]{0,1}m3', names(dt))),
+                             lower = 1)
+
+    # check that all concentration units are the same
+      # number of mg/m3 columns
+      mgm3cols <- sum(grepl('mg[\\./]{0,1}m3', names(dt)))
+      # number of ppm columns
+      ppmcols <- sum(grepl('ppm', names(dt)))
+      # check that mgm3cols + ppmcols == max(mgm3cols, ppmcols)
+      checkmate::assert_true(mgm3cols + ppmcols == max(mgm3cols, ppmcols))
+
+    # select unit of concentrations
+    concunit <- fifelse(mgm3cols > ppmcols, 'mgm3', 'ppm')
+  }
+
   # grep columns with measurements and timestamps
-  cols <- (names(dt)[grep('Time|ppm|O2|2O|H3',names(dt))])
+  cols <- (names(dt)[grep(paste0('Time|O2|2O|H3|', concunit),names(dt))])
   dt <- dt[,..cols]
 
-  # check if data is complete (at least a timestamp and a measurement)
+  # check if data is complete (at least a timestamp)
   # check that there is at most 1 Time column
   checkmate::assert_number(sum(grepl('Time', names(dt))), lower = 1, upper = 1)
-  # check that there is at least one ppm measurement column
-  checkmate::assert_number(sum(grepl('ppm', names(dt)[!grepl('Time', names(dt))])),
-                           lower = 1)
-
-  # check if all measurements are in ppm, if in ppb or percentage you need to manually change input
-  checkmate::assert_true(all(grepl('Time|ppm',cols)))
 
   # format timestamp as posxct
   dt <- dt[,Timestamp := lubridate::ymd_hms(Timestamp)]
@@ -101,7 +115,8 @@ ppr_measurement <- function(measurement.dt) {
   # format column names
   setnames(dt, names(dt), gsub('\\.\\.', '\\.', names(dt)))
   setnames(dt, names(dt), gsub('\\.$', '', names(dt)))
-  setnames(dt, names(dt)[grepl('ppm', names(dt))], tolower(names(dt)[grepl('ppm', names(dt))]))
+  setnames(dt, names(dt)[grepl(concunit, names(dt))],
+           tolower(names(dt)[grepl(concunit, names(dt))]))
 
   # return output
   return(dt)

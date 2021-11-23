@@ -4,11 +4,14 @@
 \alias{ppr_measurement}
 \title{Prepare measurement data}
 \usage{
-ppr_measurement(measurement.dt)
+ppr_measurement(measurement.dt, concunit = "ppm")
 }
 \arguments{
 \item{measurement.dt}{(data.table) A data.table with measurement data from
 the gaserone analyser.}
+
+\item{concunit}{(character) String denoting the unit of the measured
+concentration}
 }
 \description{
 Formats measurement data. Specifically: Timestamp is turned into POSIXct and
