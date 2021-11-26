@@ -121,3 +121,37 @@ ppr_measurement <- function(measurement.dt, concunit = NA_character_) {
   # return output
   return(dt)
 }
+#' Convert ppm
+#'
+#' Converts concentrations given as ppm to mg/m3. The unit ppm is ambiguous as
+#' the number of parts in a volume depends on air pressure and temperature.
+#'
+#' @param dt (data.table) A data.table with gas concentrations expressed in ppm.
+#' @param meascols (character) A character vector with columns that need
+#' converting.
+#' @param temp (numeric) Temperature in degrees C during measurement can be 20
+#' or 25
+#'
+#' @import data.table
+#'
+#' @export
+conv_ppm <- function(dt, meascols, temp) {
+  # check meascols are in dt
+  checkmate::assert_true(all(meascols %in% names(dt)))
+
+  # check temp input
+  checkmate::assert_subset(temp, choices = c(20, 25))
+  checkmate::assert_numeric(temp, any.missing = FALSE, len = 1)
+
+  # convert ppm cols
+  fact_00C <- 22.14 # PLACEHOLDER needs to be looked up; molar volume is 22.14 at 0C with 1 atmosphere
+  fact_20C <- 24.055 # PLACEHOLDER needs to be looked up; molar volume is 24.055 at 20C with 1 atmosphere
+  fact_25C <- 24.465# PLACEHOLDER needs to be looked up; molar volume is 24.465 at 25C with 1 atmosphere
+
+  dt[, .SDcols := lapply(.SD, function(x)x*fifelse(temp == 20, fact_20C, fact_25C)),
+     .SDcols = meascols]
+
+
+
+  return(dt)
+}
