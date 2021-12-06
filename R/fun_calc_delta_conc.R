@@ -50,7 +50,7 @@ calc_delta <- function(dt, startconc = NA) {
     # get startconc values
     startconc <- dt[sample_id %in% startconc & startend %in% c('start', 'inter', 'end')]
     # select measurement columns
-    startconc <- startconc[,..val.cols]
+    startconc <- startconc[,val.cols, with = FALSE]
     # average values
     startconc <- startconc[,lapply(.SD, function(x)mean(x,na.rm = TRUE)), .SDcols = val.cols]
   # }

@@ -23,7 +23,7 @@ ppr_samplekey <- function(dt) {
                                         "end_timeday", "seal_day", "start_day", "end_day", "warn"))
   # remove warning column
   keepcols <- c(names(dt)[grep('id|time|day',names(dt))])
-  dt <- dt[,..keepcols]
+  dt <- dt[,keepcols, with = FALSE]
 
   # remove rows without sample_id
   dt <- dt[!is.na(sample_id),]
@@ -75,7 +75,7 @@ ppr_measurement <- function(measurement.dt, concunit = NA_character_) {
   # measurement.dt <- read.delim('path/name.meas'), skip = 6) |> setDT()
 
   # add global binding
-  ..cols = Timestamp = NULL
+  cols = Timestamp = NULL
 
   # copy data table
   dt <- copy(measurement.dt)
@@ -108,7 +108,7 @@ ppr_measurement <- function(measurement.dt, concunit = NA_character_) {
 
   # grep columns with measurements and timestamps
   cols <- (names(dt)[grep(paste0('Time|O2|2O|H3|', concunit),names(dt))])
-  dt <- dt[,..cols]
+  dt <- dt[,cols, with = FALSE]
 
   # check if data is complete (at least a timestamp)
   # check that there is at most 1 Time column
@@ -206,7 +206,7 @@ conv_ppm <- function(dt, idcol, meascols, temp = 25, pressure = 1.01325*10^5) {
   cols <- c(idcol, meascols)
 
   # make dt to do calculations in
-  sdt <- dt[,..cols]
+  sdt <- dt[,cols, with = FALSE]
 
   # melt sdt to get all measurements in one column
   sdt <- melt(sdt, id.vars = idcol)

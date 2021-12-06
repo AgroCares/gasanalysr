@@ -148,7 +148,7 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
    ncols <- names(dtm)[grepl('^n\\.', names(dtm))]
    kcols <- names(dtm)[!names(dtm) %in% ncols]
 
-   dtm <- dtm[,..kcols]
+   dtm <- dtm[,kcols, with = FALSE]
 
    return(dtm)
 }
