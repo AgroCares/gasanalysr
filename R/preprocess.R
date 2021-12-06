@@ -83,7 +83,12 @@ ppr_measurement <- function(measurement.dt, concunit = NA_character_) {
   # check data table
   checkmate::assert_data_table(dt)
 
-  # identify unit in which concentrations are expressed
+  # check concunit
+  checkmate::assert_subset(concunit, choices = c('ppm', 'mgm3', NA_character_),
+                           empty.ok = FALSE)
+  checkmate::assert_character(concunit, len = 1)
+
+  # identify unit in which concentrations are expressed if not given
   if(is.na(concunit)) {
     # check that at least one column with a concentration is present
     checkmate::assert_number(sum(grepl('ppm|mg[\\./]{0,1}m3', names(dt))),
