@@ -126,7 +126,7 @@ ppr_measurement <- function(measurement.dt, concunit = NA_character_) {
   # return output
   return(dt)
 }
-#' Convert ppm
+#' Convert ppm to mg/m3
 #'
 #' Converts concentrations given as ppm to mg/m3. The unit ppm is ambiguous as
 #' the number of parts in a volume depends on air pressure and temperature.
@@ -142,8 +142,26 @@ ppr_measurement <- function(measurement.dt, concunit = NA_character_) {
 #'
 #' @import data.table
 #'
+#' @details To convert a concentration ppm (parts per million) with a unit as
+#' mol/mol to a concentration mg/m3 (mass/volume) one needs the molar volume,
+#' number of moles and molar mass of a gas.
+#'  The number of moles of a gas is derived from the ideal gas law
+#' (we assume our converted gasses are ideal gasses): n = PV/R/T
+#' Where P = pressure (Pa)
+#' V = volume
+#' R = the universal gas constant
+#' T = temperature (k)
+#'
+#' by multiplying the concentration ppm with n and the molar mass we gain our
+#' concentration in mg/m3
+#'
+#' @seealso \url{https://en.wikipedia.org/wiki/Gas_laws}
+#'
 #' @export
 conv_ppm <- function(dt, idcol, meascols, temp = 25, pressure = 1.01325*10^5) {
+  # add visual binding
+  variable = gas= mgm3 = value = molarmass = NULL
+
   # get some data for calculations
   # molecular weight table
   mw.dt <- data.table(gas = c('co2', 'h2o', 'n2o', 'nh3'),
