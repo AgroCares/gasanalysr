@@ -128,25 +128,110 @@ ppr_measurement <- function(measurement.dt, concunit = NA_character_) {
 #'
 #' @param dt (data.table) A data.table with gas concentrations expressed in ppm.
 #' @param meascols (character) A character vector with columns that need
-#' converting.
-#' @param temp (numeric) Temperature in degrees C during measurement can be 20
-#' or 25
+#' converting, only columns that contain just one of following gases in column
+#'  name work: co2, h2o, nh3, or n2o
+#' @param idcol (character) Column to identify unique measurements, most likely
+#' you will want to use Timestamp for this
+#' @param temp (numeric) Temperature in degrees C during measurement default = 25C
+#' @param pressure (numeric) Air pressure in Pa, default is 1 atmosphere (1.01325*10^5)
 #'
 #' @import data.table
 #'
 #' @export
-conv_ppm <- function(dt, meascols, temp) {
+conv_ppm <- function(dt, idcol, meascols, temp = 25, pressure = 1.01325*10^5) {
+  # get some data for calculations
+  # molecular weight table
+  mw.dt <- data.table(gas = c('co2', 'h2o', 'n2o', 'nh3'),
+                      molarmass = c(44.0098, 18.0152, 44.01288, 17.03044))
+
+  # molar gas constant
+  R <- 8.314462618
+
+  # volume
+  V <- 1
+
+  # convert temperature to K
+  tempk <- temp+273.15
+
+
+  # check inputs
+  # check dt
+  checkmate::assert_data_table(dt)
+
+  # check idcol
+  checkmate::assert_character(idcol, any.missing = FALSE)
+  checkmate::assert_true(all(idcol) %in% names(dt))
+
   # check meascols are in dt
+  checkmate::assert_character(miscol, any.missing = FALSE,
+                              max.len = 4, min.len = 1)
   checkmate::assert_true(all(meascols %in% names(dt)))
+  #check meascols start with allowed gases
 
   # check temp input
-  checkmate::assert_subset(temp, choices = c(20, 25))
   checkmate::assert_numeric(temp, any.missing = FALSE, len = 1)
 
+  # check pressure
+  checkmate::assert_numeric(pressure, lower = 1.2, any.missing = FALSE, len =1)
+
   # convert ppm cols
-  fact_00C <- 22.14 # PLACEHOLDER needs to be looked up; molar volume is 22.14 at 0C with 1 atmosphere
-  fact_20C <- 24.055 # PLACEHOLDER needs to be looked up; molar volume is 24.055 at 20C with 1 atmosphere
-  fact_25C <- 24.465# PLACEHOLDER needs to be looked up; molar volume is 24.465 at 25C with 1 atmosphere
+  # fact_00C <- 22.14 # PLACEHOLDER needs to be looked up; molar volume is 22.14 at 0C with 1 atmosphere
+  # fact_20C <- 24.055 # PLACEHOLDER needs to be looked up; molar volume is 24.055 at 20C with 1 atmosphere
+  # fact_25C <- 24.465# PLACEHOLDER needs to be looked up; molar volume is 24.465 at 25C with 1 atmosphere
+
+  # combine idcol and meascol to get vector of relevant cols
+  cols <- c(idcol, meascols)
+
+  # make dt to do calculations in
+  sdt <- dt[,..cols]
+
+  # melt sdt to get all measurements in one column
+  sdt <- melt(sdt, id.vars = idcol)
+
+  # identify gas
+  sdt[grepl('co2', variable),gas := 'co2']
+  sdt[grepl('h2o', variable),gas := 'h2o']
+  sdt[grepl('n2o', variable),gas := 'n2o']
+  sdt[grepl('nh3', variable),gas := 'nh3']
+
+  # get vector of gasses in data
+  gasses <- unique(sdt$gas)
+
+  # add molar mass
+  sdt <- merge(sdt, mw.dt, by = 'gas')
+
+  # calculate value in mg/m3
+  sdt[,mgm3 := (pressure*V/R/tempk/1000)*value*molarmass]
+
+  # change variable to mgm3
+  # sdt[,variable := gsub('ppm','mgm3', variable)]
+
+  # dcast to
+  sdt <- dcast(sdt, get(idcol) ~ gas, value.var = 'mgm3')
+
+  # helper function to change columns in dt
+    coloverwrite <- function(dt, gas) {
+      # column name of gas
+      gascoln <- names(dt)[grepl(gas, names(dt))]
+
+      # make column in dt with converted data from sdt
+      dt[,newdatacol := sdt[,get(gas)]]
+
+      # change name to indicate change
+      setnames(dt, gascoln, paste0(gas, '_mgm3'))
+
+
+
+      # return
+      return(dt)
+    }
+
+  # change dt columns
+  for(i in gasses) {
+    dt <- coloverwrite(dt = dt, gas = i)
+  }
+
+
 
   dt[, .SDcols := lapply(.SD, function(x)x*fifelse(temp == 20, fact_20C, fact_25C)),
      .SDcols = meascols]
