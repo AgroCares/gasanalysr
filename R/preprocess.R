@@ -165,10 +165,10 @@ conv_ppm <- function(dt, idcol, meascols, temp = 25, pressure = 1.01325*10^5) {
 
   # check idcol
   checkmate::assert_character(idcol, any.missing = FALSE)
-  checkmate::assert_true(all(idcol) %in% names(dt))
+  checkmate::assert_true(all(idcol %in% names(dt)))
 
   # check meascols are in dt
-  checkmate::assert_character(miscol, any.missing = FALSE,
+  checkmate::assert_character(meascols, any.missing = FALSE,
                               max.len = 4, min.len = 1)
   checkmate::assert_true(all(meascols %in% names(dt)))
   #check meascols start with allowed gases
@@ -212,36 +212,32 @@ conv_ppm <- function(dt, idcol, meascols, temp = 25, pressure = 1.01325*10^5) {
   # sdt[,variable := gsub('ppm','mgm3', variable)]
 
   # dcast to
-  sdt <- dcast(sdt, get(idcol) ~ gas, value.var = 'mgm3')
+  sdt <- dcast(sdt, get(idcol) ~ variable, value.var = 'mgm3')
 
-  # helper function to change columns in dt
-    coloverwrite <- function(dt, gas) {
-      # column name of gas
-      gascoln <- names(dt)[grepl(gas, names(dt))]
+  # # helper function to change columns in dt
+  #   coloverwrite <- function(dt, gas) {
+  #     # column name of gas
+  #     gascoln <- names(dt)[grepl(gas, names(dt))]
+  #
+  #     # make column in dt with converted data from sdt
+  #     dt[,newdatacol := sdt[,get(gas)]]
+  #
+  #     # change name to indicate change
+  #     setnames(dt, gascoln, paste0(gas, '_mgm3'))
+  #
+  #     # return
+  #     return(dt)
+  #   }
+  #
+  # # change dt columns
+  # for(i in gasses) {
+  #   dt <- coloverwrite(dt = dt, gas = i)
+  # }
 
-      # make column in dt with converted data from sdt
-      dt[,newdatacol := sdt[,get(gas)]]
-
-      # change name to indicate change
-      setnames(dt, gascoln, paste0(gas, '_mgm3'))
-
-
-
-      # return
-      return(dt)
-    }
-
-  # change dt columns
-  for(i in gasses) {
-    dt <- coloverwrite(dt = dt, gas = i)
-  }
-
-
-
-  dt[, .SDcols := lapply(.SD, function(x)x*fifelse(temp == 20, fact_20C, fact_25C)),
-     .SDcols = meascols]
+   # correct names
+  setnames(sdt, 'idcol', idcol)
+  setnames(sdt, names(sdt), gsub('ppm', 'mgm3', names(sdt)))
 
 
-
-  return(dt)
+  return(sdt)
 }

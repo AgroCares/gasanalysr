@@ -37,7 +37,7 @@ ddtt[,dif_t1_fr := dif_t1/mgm3*100]
 # molar gas constant
 mgc <- 8.314462618
 tk <- 298.15
-P <- 1*1.01325*10^5 #(convert atm to Pa)
+P <- 1.01325*10^5 #(convert atm to Pa)
 
 R <- (mgc*tk)/P
 
