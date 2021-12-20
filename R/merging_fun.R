@@ -84,16 +84,23 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
 
   # add global binding
   fmr = max.backg.h2o = endrows = n.likelywrongstart = startrows = n.time = NULL
-   h2o.ppm = startend = sample_id = stimedate = n.startend = n.sample_id = NULL
+   h2o.col = startend = sample_id = stimedate = n.startend = n.sample_id = NULL
+
+   # identify a column name with h2o in it
+   h2o.col <-  names(dtm)[grepl('h2o',names(dtm))]
+
+   # check h2o col has allowed units
+   checkmate::assert_subset(h2o.col, choices = c('h2o.ppm', 'h2o.mgm3'),
+                            empty.ok = FALSE)
 
   # checking of merging timestamps was successful or that timestamps have been shifted by 2 minutes
-  if(!'h2o.ppm' %in% names(dtm)) {
-    warning('column h2o.ppm is missing, a check for correct Timestep merging cannot be performed')
+  if(!h2o.col %in% names(dtm)) {
+    warning('column with h2o is missing, a check for correct Timestep merging cannot be performed')
   } else{
     # identify first measurement row
-    fmr <- min(which(dtm[!is.na(h2o.ppm),startend] == 'start'))
+    fmr <- min(which(dtm[!is.na(get(h2o.col)),startend] == 'start'))
     # determine maximum background h2o concentration before measuring samples
-    max.backg.h2o <- max(dtm[!is.na(h2o.ppm),h2o.ppm][1:(fmr-2)])
+    max.backg.h2o <- max(dtm[!is.na(get(h2o.col)),get(h2o.col)][1:(fmr-2)])
 
     # check if max.backg.h2o isn't very high
     if(max.backg.h2o > max.amb.h2o) {
@@ -103,7 +110,8 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
     } else{
       # number of start measurements with h2o concentrations within 10% of max background h2o
       n.likelywrongstart <- nrow(dtm[startend == 'start' &
-                                       !is.na(sample_id)& h2o.ppm < 1.1*max.backg.h2o])
+                                       !is.na(sample_id)&
+                                       get(h2o.col) < 1.1*max.backg.h2o])
       if(n.likelywrongstart>0) {
         message('At least one measurement seems to have low h2o concentrations at start, attempting to shift rows')
         # reducing timestamp by 2 minutes is not smart, because there isn't always two minutes between timestamps, would be better to improve imput data or merge with adjusted index (taking other row)
@@ -124,21 +132,30 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
               list('end', dtm[endrows,sample_id], dtm[endrows, stimedate])]
 
         # checking new start concentrations
-        n.likelywrongstart <- nrow(dtm[n.startend == 'start'&!is.na(n.sample_id)& h2o.ppm <1.1*max.backg.h2o])
+        n.likelywrongstart <- nrow(dtm[n.startend == 'start'&!
+                                         is.na(n.sample_id)&
+                                         get(h2o.col) <1.1*max.backg.h2o])
         # checking new end concentrations
-        n.likelywrongend <- nrow(dtm[n.startend == 'end'&!is.na(n.sample_id)& h2o.ppm <1.1*max.backg.h2o])
+        n.likelywrongend <- nrow(dtm[n.startend == 'end'&!
+                                       is.na(n.sample_id)&
+                                       get(h2o.col) <1.1*max.backg.h2o])
 
         # warning when there still seems to be something wrong
         if(n.likelywrongstart>0) {
           warning(paste('There are still start rows with h2o concentration within 10% of background, so youll have to look into why yourself this is for samples with sample_id',
-                        list(dtm[n.startend == 'start'&!is.na(n.sample_id)& h2o.ppm <1.1*max.backg.h2o, n.sample_id])))
+                        list(dtm[n.startend == 'start'&!
+                                   is.na(n.sample_id)&
+                                   get(h2o.col) <1.1*max.backg.h2o, n.sample_id])))
           # message condition 1
         }else{c1 <- 1}
         if(n.likelywrongend>0) {
           warning('There are still end rows with h2o concentration within 10% of background, so youll have to look into why yourself')
           # message concditoin 2
         } else{c2 <- 1}
-        if(all(exists('c1')&exists('c2'))) {message('shifting of timestamps seems to have been succesfull, no start or end rows have low h2o concentrations anymore')}
+        if(all(exists('c1')&
+               exists('c2'))) {
+          message('shifting of timestamps seems to have been succesfull, no start or end rows have low h2o concentrations anymore')
+          }
 
         # overwrite sample_id and startend with adjusted columns
         dtm[,c('sample_id', 'startend','stimedate') := list(n.sample_id, n.startend, n.time)]
