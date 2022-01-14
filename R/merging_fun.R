@@ -28,7 +28,7 @@ merge_times <- function(sdt, mdt, timestamp_check = TRUE){
   checkmate::assert_posixct(sdt$timedate)
 
   # format sdt stimedate as ymdhm
-  sdt <- sdt[,stimedate := format(as.POSIXct(timedate), format = "%Y-%m-%d %H:%M")]
+  sdt <- sdt[,stimedate := format(as.POSIXct(timedate, tz = 'UTC'), format = "%Y-%m-%d %H:%M")]
 
   # checks on mdt
   checkmate::assert_data_table(mdt, min.cols = 2)
@@ -38,8 +38,8 @@ merge_times <- function(sdt, mdt, timestamp_check = TRUE){
                                'co2.mg.m3', 'h2o.mg.m3', 'n2o.mg.m3', 'nh3.mg.m3') %in% names(mdt)))
 
   # format Timestamp as ymdhm
-  mdt <- mdt[,Timestamp := format(as.POSIXct(Timestamp), format = "%Y-%m-%d %H:%M")]
-  mdt <- mdt[,Timestamp := lubridate::ymd_hm(Timestamp)]
+  mdt <- mdt[,Timestamp := format(as.POSIXct(Timestamp, tz = 'UTC'), format = "%Y-%m-%d %H:%M")]
+  mdt <- mdt[,Timestamp := lubridate::ymd_hm(Timestamp, tz = 'UTC')]
 
   # merge monsternrs with measurements
   dtm <- merge(mdt, sdt, by.x = 'Timestamp', by.y = 'timedate', all.x = TRUE, all.y = TRUE)
