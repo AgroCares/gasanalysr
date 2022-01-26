@@ -35,7 +35,7 @@ merge_times <- function(sdt, mdt, timestamp_check = TRUE){
   checkmate::assert_true(all(c('Timestamp' %in% names(mdt)))) # check if timestamp is present
   checkmate::assert_posixct(mdt$Timestamp, any.missing = FALSE)
   checkmate::assert_true(any(c('co2.ppm', 'h2o.ppm', 'n2o.ppm', 'nh3.ppm',
-                               'co2.mg.m3', 'h2o.mg.m3', 'n2o.mg.m3', 'nh3.mg.m3') %in% names(mdt)))
+                               'co2.mgm3', 'h2o.mgm3', 'n2o.mgm3', 'nh3.mgm3') %in% names(mdt)))
 
   # format Timestamp as ymdhm
   mdt <- mdt[,Timestamp := format(as.POSIXct(Timestamp, tz = 'UTC'), format = "%Y-%m-%d %H:%M")]
