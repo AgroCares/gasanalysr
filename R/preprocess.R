@@ -118,8 +118,16 @@ ppr_measurement <- function(measurement.dt, concunit = NA_character_) {
   dt <- dt[,Timestamp := lubridate::ymd_hms(Timestamp)]
 
   # format column names
+  # replace double dot .. with .
   setnames(dt, names(dt), gsub('\\.\\.', '\\.', names(dt)))
+
+  # remove trailing dot
   setnames(dt, names(dt), gsub('\\.$', '', names(dt)))
+
+  # remove dot between mg.m3
+  setnames(dt, names(dt), gsub('g\\.m', 'gm', names(dt)))
+
+  # decappitalise names of measured concentrations
   setnames(dt, names(dt)[grepl(concunit, names(dt))],
            tolower(names(dt)[grepl(concunit, names(dt))]))
 
