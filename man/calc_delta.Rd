@@ -16,7 +16,7 @@ incubation start concentration for all samples}
 out (data.table) A data.table with the following
 columns: sample_id,\cr gas, \cr sealtime, \cr
 mmtime (mean measurement time, the mean time of measurements of a sample),\cr
-incubation_time (time between sealing and mmtime),\cr
+incubation_time (time between sealing and mmtime expressed in days),\cr
 startconc (concentration or reference sample during measurement),\cr
 mmconc (mean concentration during measurement),\cr
 d_conc (difference in concentration between sample measurement and reference),\cr
