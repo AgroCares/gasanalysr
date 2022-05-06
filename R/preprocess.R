@@ -23,7 +23,7 @@ ppr_samplekey <- function(dt) {
                                         "end_timeday", "seal_day", "start_day", "end_day", "warn"))
   # remove warning column
   keepcols <- c(names(dt)[grep('id|time|day',names(dt))])
-  dt <- dt[,..keepcols]
+  dt <- dt[,keepcols, with = FALSE]
 
   # remove rows without sample_id
   dt <- dt[!is.na(sample_id),]
@@ -64,16 +64,18 @@ ppr_samplekey <- function(dt) {
 #'
 #' @param measurement.dt (data.table) A data.table with measurement data from
 #' the gaserone analyser.
+#' @param concunit (character) String denoting the unit of the measured
+#' concentration, allowed units are ppm and mg/m3.
 #'
 #' @import data.table
 #'
 #' @export
-ppr_measurement <- function(measurement.dt) {
+ppr_measurement <- function(measurement.dt, concunit = NA_character_) {
   # data table of measurements with column names, can be obtained with:
   # measurement.dt <- read.delim('path/name.meas'), skip = 6) |> setDT()
 
   # add global binding
-  ..cols = Timestamp = NULL
+  cols = Timestamp = NULL
 
   # copy data table
   dt <- copy(measurement.dt)
@@ -81,28 +83,187 @@ ppr_measurement <- function(measurement.dt) {
   # check data table
   checkmate::assert_data_table(dt)
 
-  # grep columns with measurements and timestamps
-  cols <- (names(dt)[grep('Time|ppm|O2|2O|H3',names(dt))])
-  dt <- dt[,..cols]
+  # check concunit
+  checkmate::assert_subset(concunit, choices = c('ppm', 'mgm3', NA_character_),
+                           empty.ok = FALSE)
+  checkmate::assert_character(concunit, len = 1)
 
-  # check if data is complete (at least a timestamp and a measurement)
+  # identify unit in which concentrations are expressed if not given
+  if(is.na(concunit)) {
+    # check that at least one column with a concentration is present
+    checkmate::assert_number(sum(grepl('ppm|mg[\\./]{0,1}m3', names(dt))),
+                             lower = 1)
+
+    # check that all concentration units are the same
+      # number of mg/m3 columns
+      mgm3cols <- sum(grepl('mg[\\./]{0,1}m3', names(dt)))
+      # number of ppm columns
+      ppmcols <- sum(grepl('ppm', names(dt)))
+      # check that mgm3cols + ppmcols == max(mgm3cols, ppmcols)
+      checkmate::assert_true(mgm3cols + ppmcols == max(mgm3cols, ppmcols))
+
+    # select unit of concentrations
+    concunit <- fifelse(mgm3cols > ppmcols, 'mgm3', 'ppm')
+  }
+
+  # grep columns with measurements and timestamps
+  cols <- (names(dt)[grep(paste0('Time|O2|2O|H3|', concunit),names(dt))])
+  dt <- dt[,cols, with = FALSE]
+
+  # check if data is complete (at least a timestamp)
   # check that there is at most 1 Time column
   checkmate::assert_number(sum(grepl('Time', names(dt))), lower = 1, upper = 1)
-  # check that there is at least one ppm measurement column
-  checkmate::assert_number(sum(grepl('ppm', names(dt)[!grepl('Time', names(dt))])),
-                           lower = 1)
-
-  # check if all measurements are in ppm, if in ppb or percentage you need to manually change input
-  checkmate::assert_true(all(grepl('Time|ppm',cols)))
 
   # format timestamp as posxct
   dt <- dt[,Timestamp := lubridate::ymd_hms(Timestamp)]
 
   # format column names
+  # replace double dot .. with .
   setnames(dt, names(dt), gsub('\\.\\.', '\\.', names(dt)))
+
+  # remove trailing dot
   setnames(dt, names(dt), gsub('\\.$', '', names(dt)))
-  setnames(dt, names(dt)[grepl('ppm', names(dt))], tolower(names(dt)[grepl('ppm', names(dt))]))
+
+  # remove dot between mg.m3
+  setnames(dt, names(dt), gsub('g\\.m', 'gm', names(dt)))
+
+  # decappitalise names of measured concentrations
+  setnames(dt, names(dt)[grepl(concunit, names(dt))],
+           tolower(names(dt)[grepl(concunit, names(dt))]))
 
   # return output
   return(dt)
+}
+#' Convert ppm to mg/m3
+#'
+#' Converts concentrations given as ppm to mg/m3. The unit ppm is ambiguous as
+#' the number of parts in a volume depends on air pressure and temperature.
+#'
+#' @param dt (data.table) A data.table with gas concentrations expressed in ppm.
+#' @param meascols (character) A character vector with columns that need
+#' converting, only columns that contain just one of following gases in column
+#'  name work: co2, h2o, nh3, or n2o
+#' @param idcol (character) Column to identify unique measurements, most likely
+#' you will want to use Timestamp for this
+#' @param temp (numeric) Temperature in degrees C during measurement default = 25C
+#' @param pressure (numeric) Air pressure in Pa, default is 1 atmosphere (1.01325*10^5)
+#'
+#' @import data.table
+#'
+#' @details To convert a concentration ppm (parts per million) with a unit as
+#' mol/mol to a concentration mg/m3 (mass/volume) one needs the molar volume,
+#' number of moles and molar mass of a gas.
+#'  The number of moles of a gas is derived from the ideal gas law
+#' (we assume our converted gasses are ideal gasses): n = PV/R/T
+#' Where P = pressure (Pa)
+#' V = volume
+#' R = the universal gas constant
+#' T = temperature (k)
+#'
+#' by multiplying the concentration ppm with n and the molar mass we gain our
+#' concentration in mg/m3
+#'
+#' @seealso \url{https://en.wikipedia.org/wiki/Gas_laws}
+#'
+#' @export
+conv_ppm <- function(dt, idcol, meascols, temp = 25, pressure = 1.01325*10^5) {
+  # add visual binding
+  variable = gas= mgm3 = value = molarmass = NULL
+
+  # get some data for calculations
+  # molecular weight table
+  mw.dt <- data.table(gas = c('co2', 'h2o', 'n2o', 'nh3'),
+                      molarmass = c(44.0098, 18.0152, 44.01288, 17.03044))
+
+  # molar gas constant
+  R <- 8.314462618
+
+  # volume
+  V <- 1
+
+  # convert temperature to K
+  tempk <- temp+273.15
+
+
+  # check inputs
+  # check dt
+  checkmate::assert_data_table(dt)
+
+  # check idcol
+  checkmate::assert_character(idcol, any.missing = FALSE)
+  checkmate::assert_true(all(idcol %in% names(dt)))
+
+  # check meascols are in dt
+  checkmate::assert_character(meascols, any.missing = FALSE,
+                              max.len = 4, min.len = 1)
+  checkmate::assert_true(all(meascols %in% names(dt)))
+  #check meascols start with allowed gases
+
+  # check temp input
+  checkmate::assert_numeric(temp, any.missing = FALSE, len = 1)
+
+  # check pressure
+  checkmate::assert_numeric(pressure, lower = 1.2, any.missing = FALSE, len =1)
+
+  # convert ppm cols
+  # fact_00C <- 22.14 # PLACEHOLDER needs to be looked up; molar volume is 22.14 at 0C with 1 atmosphere
+  # fact_20C <- 24.055 # PLACEHOLDER needs to be looked up; molar volume is 24.055 at 20C with 1 atmosphere
+  # fact_25C <- 24.465# PLACEHOLDER needs to be looked up; molar volume is 24.465 at 25C with 1 atmosphere
+
+  # combine idcol and meascol to get vector of relevant cols
+  cols <- c(idcol, meascols)
+
+  # make dt to do calculations in
+  sdt <- dt[,cols, with = FALSE]
+
+  # melt sdt to get all measurements in one column
+  sdt <- melt(sdt, id.vars = idcol)
+
+  # identify gas
+  sdt[grepl('co2', variable),gas := 'co2']
+  sdt[grepl('h2o', variable),gas := 'h2o']
+  sdt[grepl('n2o', variable),gas := 'n2o']
+  sdt[grepl('nh3', variable),gas := 'nh3']
+
+  # get vector of gasses in data
+  gasses <- unique(sdt$gas)
+
+  # add molar mass
+  sdt <- merge(sdt, mw.dt, by = 'gas')
+
+  # calculate value in mg/m3
+  sdt[,mgm3 := (pressure*V/R/tempk/1000)*value*molarmass]
+
+  # change variable to mgm3
+  # sdt[,variable := gsub('ppm','mgm3', variable)]
+
+  # dcast to
+  sdt <- dcast(sdt, get(idcol) ~ variable, value.var = 'mgm3')
+
+  # # helper function to change columns in dt
+  #   coloverwrite <- function(dt, gas) {
+  #     # column name of gas
+  #     gascoln <- names(dt)[grepl(gas, names(dt))]
+  #
+  #     # make column in dt with converted data from sdt
+  #     dt[,newdatacol := sdt[,get(gas)]]
+  #
+  #     # change name to indicate change
+  #     setnames(dt, gascoln, paste0(gas, '_mgm3'))
+  #
+  #     # return
+  #     return(dt)
+  #   }
+  #
+  # # change dt columns
+  # for(i in gasses) {
+  #   dt <- coloverwrite(dt = dt, gas = i)
+  # }
+
+   # correct names
+  setnames(sdt, 'idcol', idcol)
+  setnames(sdt, names(sdt), gsub('ppm', 'mgm3', names(sdt)))
+
+
+  return(sdt)
 }
