@@ -120,6 +120,13 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
         dtm[startend == 'seal',c('n.startend', 'n.sample_id') :=
               list('seal',sample_id)]
 
+        # copy seal time
+        dtm[startend == 'seal', n.time := stimedate]
+
+        # split seal rows from dtm
+        dtm_seal <- dtm[startend == 'seal']
+        dtm <- dtm[!startend == 'seal'|is.na(startend)]
+
         # get rows indices with start and end
         startrows <- which(dtm[,startend] == 'start')
         endrows  <- which(dtm[,startend] == 'end')
@@ -130,6 +137,10 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
         # new end
         dtm[endrows-1,  c('n.startend', 'n.sample_id','n.time') :=
               list('end', dtm[endrows,sample_id], dtm[endrows, stimedate])]
+
+        # combine dtm and dtm_seal again
+        dtm <- rbindlist(list(dtm, dtm_seal))
+        setorder(dtm, Timestamp)
 
         # checking new start concentrations
         n.likelywrongstart <- nrow(dtm[n.startend == 'start'&!
