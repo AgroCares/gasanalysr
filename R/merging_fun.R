@@ -116,16 +116,17 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
         message('At least one measurement seems to have low h2o concentrations at start, attempting to shift rows')
         # reducing timestamp by 2 minutes is not smart, because there isn't always two minutes between timestamps, would be better to improve imput data or merge with adjusted index (taking other row)
 
-        # making new startend column
-        dtm[startend == 'seal',c('n.startend', 'n.sample_id') :=
-              list('seal',sample_id)]
-
-        # copy seal time
-        dtm[startend == 'seal', n.time := stimedate]
-
         # split seal rows from dtm
         dtm_seal <- dtm[startend == 'seal']
-        dtm <- dtm[!startend == 'seal'|is.na(startend)]
+
+        # making new startend column
+        dtm_seal[,c('n.startend', 'n.sample_id', 'n.time') := list('seal',sample_id, stimedate)]
+
+        # remove seal data from dtm
+        dtm <- dtm[startend == 'seal', c('sample_id', 'startend', 'stimedate') := NA]
+
+        # remove duplicated data rows in case of multiple seal rows coinciding with the time of a measurement
+        dtm <- unique(dtm)
 
         # get rows indices with start and end
         startrows <- which(dtm[,startend] == 'start')
