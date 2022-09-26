@@ -128,6 +128,12 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
         # remove duplicated data rows in case of multiple seal rows coinciding with the time of a measurement
         dtm <- unique(dtm)
 
+        # remove rows without measurements
+        dtm <- dtm[!is.na(get(h2o.col))]
+
+        # remove rows with a duplicated Timestamp without sample_id
+        dtm <- dtm[!(is.na(sample_id) & Timestamp %in% dtm[!is.na(sample_id), Timestamp])]
+
         # get rows indices with start and end
         startrows <- which(dtm[,startend] == 'start')
         endrows  <- which(dtm[,startend] == 'end')
@@ -154,7 +160,7 @@ tsscheck <- function(dtm, max.amb.h2o = 20000) {
 
         # warning when there still seems to be something wrong
         if(n.likelywrongstart>0) {
-          warning(paste('There are still start rows with h2o concentration within 10% of background, so youll have to look into why yourself this is for samples with sample_id',
+          warning(paste('There are still start rows with h2o concentration within 10% of background (which is ', max.backg.h2o,'), so youll have to look into why yourself this is for samples with sample_id',
                         list(dtm[n.startend == 'start'&!
                                    is.na(n.sample_id)&
                                    get(h2o.col) <1.1*max.backg.h2o, n.sample_id])))
