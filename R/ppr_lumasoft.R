@@ -40,11 +40,11 @@ lsg_fileppr <- function(p){
   filestocopy <- list.files(p, full.names = TRUE)
 
   # copy files into newdir
-  file.copy(from = filestocopy, to = file.path(fl, 'ppr_lsg'),
+  file.copy(from = filestocopy, to = file.path(p, 'ppr_lsg'),
             recursive = FALSE, copy.mode = TRUE)
 
   # return new dir
-  return(paste0(fl, '/ppr_lsg'))
+  return(paste0(p, '/ppr_lsg'))
 }
 #' Read lsg file and turn into formatted dt
 #'
@@ -66,10 +66,18 @@ lsg_xlsx_to_dt <- function(f, p){
 
   for(sn in sts[-1]) {
     # read sheet
-    dt <- readxl::read_excel(path = floc, sheet = sn) |> setDT()
+    dt <- readxl::read_excel(path = floc, sheet = sn, skip = 1) |> setDT()
+
+    # select meltable columns (remove non numerics)
+    meltable <- c('Date & Time')
+    for(cname in names(dt)) {
+      if(is.numeric(dt[,get(cname)])){
+        meltable <- c(meltable, cname)
+      }
+    }
 
     # melt
-    mdt <- melt(dt, id.vars = "Date & Time")
+    mdt <- melt(dt[,..meltable], id.vars = "Date & Time")
 
     # set value column name
     setnames(mdt, old = 'value', sn)
@@ -78,7 +86,7 @@ lsg_xlsx_to_dt <- function(f, p){
     if(!exists('out')){
       out <- mdt
     } else{
-      out <- merge(out, mdt)
+      out <- merge(out, mdt, by = 'Date & Time')
     }
   }
 
