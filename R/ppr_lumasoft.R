@@ -59,7 +59,7 @@ lsg_xls_to_xlsx <- function(folder_with_xls_files) {
 
   # change file extensions from xls to xlsx
   file.rename(from = list.files(folder_with_xls_files, full.names = TRUE),
-              to = gsub('\\.xls$', '\\.xlsx', list.files(np, full.names = TRUE)))
+              to = gsub('\\.xls$', '\\.xlsx', list.files(folder_with_xls_files, full.names = TRUE)))
 }
 
 
