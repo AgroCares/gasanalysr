@@ -100,10 +100,10 @@ lsg_xlsx_to_dt <- function(f, p){
     setnames(mdt, old = 'value', sn)
 
     # merge in product
-    if(!exists('out')){
+    if(is.null(out)){
       out <- mdt
     } else{
-      out <- merge(out, mdt, by = 'Date & Time')
+      out <- merge(out, mdt, by = c(names(mdt)[1:2]))
     }
   }
 
