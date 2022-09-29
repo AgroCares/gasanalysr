@@ -16,7 +16,7 @@ ppr_lsg <- function(p){
   checkmate::assert_directory(p)
 
   # copy files to new folder and get path to new folder
-  np <- lsg_fileppr(p)
+  np <- lsg_copy_raw_data(p)
 
   # change file extensions from xls to xlsx
   file.rename(from = list.files(np, full.names = TRUE),
@@ -28,7 +28,7 @@ ppr_lsg <- function(p){
 #' Copy lsg raw data into new location
 #'
 #' @param p (character) Path to directory
-lsg_fileppr <- function(p){
+lsg_copy_raw_data <- function(p){
   # add visual binding
 
   # check inputs
