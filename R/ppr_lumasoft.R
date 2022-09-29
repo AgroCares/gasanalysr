@@ -50,7 +50,7 @@ lsg_copy_raw_data <- function(p){
 #'
 #' @param f (character) file name
 #' @param p (character) path to directory file is in
-lsg_xlsx_to_dt <- function(f, p){
+lsg_xls_to_dt <- function(f, p){
   # add visual binding
   floc = dt = mdt = out = sn = sts = NULL
 
