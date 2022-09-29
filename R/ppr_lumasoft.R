@@ -67,7 +67,7 @@ lsg_xls_to_xlsx <- function(folder_with_xls_files) {
 #'
 #' @param f (character) file name
 #' @param p (character) path to directory file is in
-lsg_xls_to_dt <- function(f, p){
+lsg_xlsx_to_dt <- function(f, p){
   # add visual binding
   floc = dt = mdt = out = sn = sts = NULL
 
