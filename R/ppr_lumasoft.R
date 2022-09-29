@@ -19,8 +19,7 @@ ppr_lsg <- function(p){
   np <- lsg_copy_raw_data(p)
 
   # change file extensions from xls to xlsx
-  file.rename(from = list.files(np, full.names = TRUE),
-              to = gsub('\\.xls$', '\\.xlsx', list.files(np, full.names = TRUE)))
+  lsg_xls_to_xlsx(folder_with_xls_files = np)
 
   #
 
@@ -46,6 +45,24 @@ lsg_copy_raw_data <- function(p){
   # return new dir
   return(paste0(p, '/ppr_lsg'))
 }
+
+#' Change file extension to xlsx
+#'
+#' Changes the file extension of all files with the extension .xls to .xlsx
+#'
+#' @param folder_with_xls_files (character) path to a directory with .xls files
+lsg_xls_to_xlsx <- function(folder_with_xls_files) {
+  # add visual binding
+
+  # check input
+  checkmate::assert_directory(folder_with_xls_files)
+
+  # change file extensions from xls to xlsx
+  file.rename(from = list.files(folder_with_xls_files, full.names = TRUE),
+              to = gsub('\\.xls$', '\\.xlsx', list.files(np, full.names = TRUE)))
+}
+
+
 #' Read lsg file and turn into formatted dt
 #'
 #' @param f (character) file name
