@@ -22,7 +22,7 @@ test_that('lsg_copy_raw_data() works',{
 })
 
 # test lsg_xlsx_to_dt ====
-test_that('lsg_xls_to_dt() can convert documents with channels per sheet', {
+test_that('lsg_xlsx_to_dt() can convert documents with channels per sheet', {
   # copy test data
   path_to_file <- lsg_copy_raw_data(tloc)
 
@@ -30,8 +30,13 @@ test_that('lsg_xls_to_dt() can convert documents with channels per sheet', {
   lsg_xls_to_xlsx(path_to_file)
 
   # process channels per sheet file
-  lsg_xlsx_to_dt(f = 'lsg_channels_per_sheet.xlsx', p = path_to_file)
+  dt <- lsg_xlsx_to_dt(f = 'lsg_channels_per_sheet.xlsx', p = path_to_file)
 
+  # load answer
+  ans <- readRDS(paste0(tloc, 'answers/dt_channels_per_sheet.rds'))
+
+  # expectation
+  expect_identical(dt, ans)
 
   # cleanup copied mess
   unlink(path_to_file, recursive = TRUE)
