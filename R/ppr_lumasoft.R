@@ -93,17 +93,20 @@ lsg_xlsx_to_dt <- function(f, p){
       }
     }
 
-    # melt
-    mdt <- melt(dt[,..meltable], id.vars = "Date & Time")
+    # check if there are columns to melt besides 'Date & Time'
+    if(length(meltable) > 1){
+      # melt
+      mdt <- melt(dt[,..meltable], id.vars = "Date & Time")
 
-    # set value column name
-    setnames(mdt, old = 'value', sn)
+      # set value column name
+      setnames(mdt, old = 'value', sn)
 
-    # merge in product
-    if(is.null(out)){
-      out <- mdt
-    } else{
-      out <- merge(out, mdt, by = c(names(mdt)[1:2]))
+      # merge in product
+      if(is.null(out)){
+        out <- mdt
+      } else{
+        out <- merge(out, mdt, by = c(names(mdt)[1:2]), all = TRUE)
+      }
     }
   }
 
