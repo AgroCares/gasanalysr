@@ -6,9 +6,9 @@
 \usage{
 ppr_lsg(p)
 }
+\arguments{
+\item{p}{(character) Path to a directory containing xls files to convert}
+}
 \description{
 A function to turn a .xls file exported from Lumasoftgas 7820 or 7880 into a usable data.table or csv
-}
-\details{
-#' @param p (character) Path to a directory containing xls files to convert
 }

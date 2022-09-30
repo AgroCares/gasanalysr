@@ -8,6 +8,9 @@ test_that('lsg_copy_raw_data() works',{
   # list files
   files_to_copy <- list.files(tloc)
 
+  # remove directories
+  files_to_copy <- files_to_copy[!dir.exists(paste0(tloc, files_to_copy))]
+
   # copy files and get location
   new_path <- lsg_copy_raw_data(tloc)
 

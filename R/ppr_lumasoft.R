@@ -2,11 +2,10 @@
 #'
 #' A function to turn a .xls file exported from Lumasoftgas 7820 or 7880 into a usable data.table or csv
 #'
-#' #' @param p (character) Path to a directory containing xls files to convert
+#' @param p (character) Path to a directory containing xls files to convert
 #'
 #' @import data.table
 #'
-#' @examples
 #'
 ppr_lsg <- function(p){
   # add visual binding
@@ -69,7 +68,7 @@ lsg_xls_to_xlsx <- function(folder_with_xls_files) {
 #' @param p (character) path to directory file is in
 lsg_xlsx_to_dt <- function(f, p){
   # add visual binding
-  floc = dt = mdt = out = sn = sts = NULL
+  floc = dt = mdt = out = sn = sts = meltable = NULL
 
   # check inputs
   checkmate::assert_directory(p)
