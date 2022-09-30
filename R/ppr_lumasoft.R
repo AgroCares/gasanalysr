@@ -6,7 +6,7 @@
 #'
 #' @import data.table
 #'
-#'
+#' @export
 ppr_lsg <- function(p){
   # add visual binding
 
@@ -50,6 +50,8 @@ lsg_copy_raw_data <- function(p){
 #' Changes the file extension of all files with the extension .xls to .xlsx
 #'
 #' @param folder_with_xls_files (character) path to a directory with .xls files
+#'
+#' @export
 lsg_xls_to_xlsx <- function(folder_with_xls_files) {
   # add visual binding
 
@@ -66,6 +68,8 @@ lsg_xls_to_xlsx <- function(folder_with_xls_files) {
 #'
 #' @param f (character) file name
 #' @param p (character) path to directory file is in
+#'
+#' @export
 lsg_xlsx_to_dt <- function(f, p){
   # add visual binding
   floc = dt = mdt = out = sn = sts = meltable = NULL
